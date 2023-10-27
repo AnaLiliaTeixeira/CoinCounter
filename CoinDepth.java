@@ -1,18 +1,20 @@
 import java.util.concurrent.RecursiveTask;
 
-public class CoinQueuedTaskCount extends RecursiveTask<Integer> implements Runnable{
+public class CoinDepth extends RecursiveTask<Integer> implements Runnable{
 
 	private int[] coins;
 	private int index;
 	private int accumulator;
+	private int depth;
 	
 	public static final int LIMIT = 999;
 
-	public CoinQueuedTaskCount(int[] coins, int index, int accumulator) {
+	public CoinDepth(int[] coins, int index, int accumulator, int depth) {
 
 		this.coins = coins;
 		this.index = index;
 		this.accumulator = accumulator;
+		this.depth = depth;
 	}
 	
 	public static int[] createRandomCoinSet(int N) {
@@ -26,7 +28,7 @@ public class CoinQueuedTaskCount extends RecursiveTask<Integer> implements Runna
 		}
 		return r;
 	}
-
+	
 	private static int seq(int[] coins, int index, int accumulator) {
 		
 		if (index >= coins.length) {
@@ -61,14 +63,12 @@ public class CoinQueuedTaskCount extends RecursiveTask<Integer> implements Runna
 		if (accumulator + coins[index] > LIMIT) {
 			return -1;
 		}
-		
-		// Surplus: if the current queue has more than 2 tasks than the average
-		//System.out.println(RecursiveTask.getSurplusQueuedTaskCount());
-		if (RecursiveTask.getSurplusQueuedTaskCount() > 2 ) return seq(coins, index, accumulator);
 
-		CoinQueuedTaskCount f1 = new CoinQueuedTaskCount(coins, index+1, accumulator);
+		if (depth >= 20) return seq(coins, index, accumulator);
+
+		CoinDepth f1 = new CoinDepth(coins, index+1, accumulator, depth+1);
 		f1.fork();
-		CoinQueuedTaskCount f2 = new CoinQueuedTaskCount(coins, index+1, accumulator + coins[index]);
+		CoinDepth f2 = new CoinDepth(coins, index+1, accumulator + coins[index], depth+1);
 		f2.fork();
 
 		int a = f1.join();
