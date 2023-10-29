@@ -1,9 +1,7 @@
 import java.io.FileWriter;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.Future;
 import java.util.concurrent.RecursiveTask;
@@ -72,9 +70,7 @@ public class Coin extends RecursiveTask<Integer> implements Runnable {
 		if (accumulator + coins[index] > LIMIT) {
 			return -1;
 		}
-		
-		// CoinQueuedTaskCount f1;
-		// CoinQueuedTaskCount f2;
+
 		switch (strategy) {
 			case 0:
 				// Surplus: if the current queue has more than 2 tasks than the average
@@ -83,15 +79,32 @@ public class Coin extends RecursiveTask<Integer> implements Runnable {
 				break;
 
 			case 1:
-				if (depth >= 20) return seq(coins, index, accumulator);
+				if (RecursiveTask.getSurplusQueuedTaskCount() > 3 ) return seq(coins, index, accumulator);
 				break;
 
 			case 2:
-				// Max tasks: if the total number of tasks >= T * #cores.
+				if (RecursiveTask.getSurplusQueuedTaskCount() > 4 ) return seq(coins, index, accumulator);
+				break;
+			case 3:
+				if (depth >= 20) return seq(coins, index, accumulator);
+				break;
+
+			case 4:
+				if (depth >= 25) return seq(coins, index, accumulator);
+				break;
+
+			case 5:
+				// Max tasks: if the total number of tasks >= 2 * #cores.
 				// System.out.println("\n task count = " + Coin.getQueuedTaskCount());
 				// System.out.println("\n parallelism: " + Coin.getPool().getParallelism());
-				if (Coin.getQueuedTaskCount() > 3 * Coin.getPool().getParallelism() ) return seq(coins, index, accumulator);
+				if (Coin.getQueuedTaskCount() > 3 * Coin.getPool().getParallelism()) return seq(coins, index, accumulator);
 				break;
+
+			case 6:
+				// Max tasks: if the total number of tasks >= 3 * #cores.
+				if (Coin.getQueuedTaskCount() > 4 * Coin.getPool().getParallelism()) return seq(coins, index, accumulator);
+				break;
+
 			default:
 				return seq(coins, index, accumulator);
 		}
@@ -115,7 +128,7 @@ public class Coin extends RecursiveTask<Integer> implements Runnable {
 		try {
 			FileWriter csvWriter = new FileWriter("results.csv");
 
-			int repeats = 1;
+			int repeats = 2;
 			
 			List<Integer> threads = new ArrayList<>();
 			int j = 2;
@@ -126,16 +139,24 @@ public class Coin extends RecursiveTask<Integer> implements Runnable {
 			
 			StringBuilder header = new StringBuilder("Sequential");
 			for (int t : threads) {
-				header.append(", Surplus:Thread " + t);
-				header.append(", Depth:Thread " + t);
-				header.append(", MaxTasks:Thread " + t);
+				header.append(", Surplus Tuning 2:Thread " + t);
+				header.append(", Surplus Tuning 3:Thread " + t);
+				header.append(", Surplus Tuning 4:Thread " + t);
+				header.append(", Depth Tuning 20:Thread " + t);
+				header.append(", Depth Tuning 25:Thread " + t);
+				header.append(", MaxTasks Tuning 3:Thread " + t);
+				header.append(", MaxTasks Tuning 4:Thread " + t);
 			}
 			csvWriter.write(header.toString() + "\n");
 
 			HashMap<Integer, String> strategies = new HashMap<Integer, String>();
-			strategies.put(0, "Surplus");
-			strategies.put(1, "Depth");
-			strategies.put(2, "MaxTasks");
+			strategies.put(0, "Surplus Tuning 2");
+			strategies.put(1, "Surplus Tuning 3");
+			strategies.put(2, "Surplus Tuning 4");
+			strategies.put(3, "Depth Tuning 20");
+			strategies.put(4, "Depth Tuning 25");
+			strategies.put(5, "MaxTasks Tuning 3");
+			strategies.put(6, "MaxTasks Tuning 4");
 
 			for (int i=0; i<repeats; i++) {
 
@@ -147,7 +168,7 @@ public class Coin extends RecursiveTask<Integer> implements Runnable {
 				System.out.println("Sequential;" + seqEndTime);
 				line.append(seqEndTime);
 
-				for (int currentThread = 2; currentThread <= nCores; currentThread *= 2) {
+				for (int currentThread : threads) {
             		ForkJoinPool pool = new ForkJoinPool(currentThread);
 					for (int s : strategies.keySet()) {				
 						long parInitialTime = System.nanoTime();
@@ -166,14 +187,7 @@ public class Coin extends RecursiveTask<Integer> implements Runnable {
 			}
 			csvWriter.close();
 			System.out.println("Results saved to results.csv");
-		} catch (IOException e) {
-		// TODO Auto-generated catch block
-		e.printStackTrace();
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (ExecutionException e) {
-			// TODO Auto-generated catch block
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
