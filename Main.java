@@ -1,13 +1,12 @@
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.RecursiveTask;
 
 public class Main {
     
 	public static void main(String[] args) {
 
         List<Runnable> tasks = new ArrayList<>();
-        tasks.add(new CoinQueuedTaskCount(null, 0, 0, 0, 0));
+        tasks.add(new Coin(null, 0, 0, 0, 0));
         //tasks.add(new CoinDepth(null, 0, 0, 0));
 
         for (Runnable task : tasks) {     
