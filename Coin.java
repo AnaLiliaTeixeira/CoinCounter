@@ -72,48 +72,30 @@ public class Coin extends RecursiveTask<Integer>{
 		switch (strategy) {
 			case 0:
 				// Surplus: if the current queue has more than 2 tasks than the average
-				//System.out.println(RecursiveTask.getSurplusQueuedTaskCount());
 				if (RecursiveTask.getSurplusQueuedTaskCount() > 2 ) return seq(coins, index, accumulator);
 				break;
-
 			case 1:
 				if (RecursiveTask.getSurplusQueuedTaskCount() > 3 ) return seq(coins, index, accumulator);
 				break;
-
 			case 2:
 				if (RecursiveTask.getSurplusQueuedTaskCount() > 4 ) return seq(coins, index, accumulator);
 				break;
-
 			case 3:
+				if (index >= 13) return seq(coins, index, accumulator);
+				break;
+			case 4:
 				if (index >= 15) return seq(coins, index, accumulator);
 				break;
-
-			case 4:
+			case 5:
+				if (index >= 17) return seq(coins, index, accumulator);
+				break;
+			case 6:
 				if (index >= 20) return seq(coins, index, accumulator);
 				break;
-
-			// case 5:
-			// 	if (index >= 25) return seq(coins, index, accumulator);
-			// 	break;
-
-			case 5:
+			case 7:
 				// Max tasks: if the total number of tasks >= 2 * #cores.
-				// System.out.println("\n task count = " + Coin.getQueuedTaskCount());
-				// System.out.println("\n parallelism: " + Coin.getPool().getParallelism());
 				if (Coin.getQueuedTaskCount() > 2 * Coin.getPool().getParallelism()) return seq(coins, index, accumulator);
 				break;
-			// case 6:
-			// 	// Max tasks: if the total number of tasks >= 2 * #cores.
-			// 	// System.out.println("\n task count = " + Coin.getQueuedTaskCount());
-			// 	// System.out.println("\n parallelism: " + Coin.getPool().getParallelism());
-			// 	if (Coin.getQueuedTaskCount() > 3 * Coin.getPool().getParallelism()) return seq(coins, index, accumulator);
-			// 	break;
-
-			// case 6:
-			// 	// Max tasks: if the total number of tasks >= 3 * #cores.
-			// 	if (Coin.getQueuedTaskCount() > 4 * Coin.getPool().getParallelism()) return seq(coins, index, accumulator);
-			// 	break;
-
 			default:
 				return seq(coins, index, accumulator);
 		}
@@ -151,7 +133,9 @@ public class Coin extends RecursiveTask<Integer>{
 				header.append(", Surplus Tuning 2:Thread " + t);
 				header.append(", Surplus Tuning 3:Thread " + t);
 				header.append(", Surplus Tuning 4:Thread " + t);
+				header.append(", Index Tuning 13:Thread " + t);
 				header.append(", Index Tuning 15:Thread " + t);
+				header.append(", Index Tuning 17:Thread " + t);
 				header.append(", Index Tuning 20:Thread " + t);
 				header.append(", MaxTasks Tuning 2:Thread " + t);
 			}
@@ -161,10 +145,11 @@ public class Coin extends RecursiveTask<Integer>{
 			strategies.put(0, "Surplus Tuning 2");
 			strategies.put(1, "Surplus Tuning 3");
 			strategies.put(2, "Surplus Tuning 4");
-			strategies.put(3, "Index Tuning 15");
-			strategies.put(4, "Index Tuning 20");
-			strategies.put(5, "MaxTasks Tuning 2");
-			// strategies.put(6, "MaxTasks Tuning 3");
+			strategies.put(3, "Index Tuning 13");
+			strategies.put(4, "Index Tuning 15");
+			strategies.put(5, "Index Tuning 17");
+			strategies.put(6, "Index Tuning 20");
+			strategies.put(7, "MaxTasks Tuning 2");
 
 			for (int i=0; i<repeats; i++) {
 
