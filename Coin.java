@@ -57,7 +57,7 @@ public class Coin extends RecursiveTask<Integer>{
 
 	@Override
 	protected Integer compute() {
-		//stop condition
+
 		if (index >= coins.length) {
 			if (accumulator < LIMIT) {
 				return accumulator;
@@ -100,7 +100,6 @@ public class Coin extends RecursiveTask<Integer>{
 				return seq(coins, index, accumulator);
 		}
 
-		// System.out.println("Index: " + index);
 		Coin f1 = new Coin(coins, index+1, accumulator,  strategy);
 		f1.fork();
 		Coin f2 = new Coin(coins, index+1, accumulator + coins[index], strategy);
